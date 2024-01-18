@@ -1,46 +1,32 @@
-# homework
+# Домашнее задание по курсу «Технологии разработки веб-приложений»
 
-This template should help get you started developing with Vue 3 in Vite.
+**Вариант: ТРВП-018**
 
-## Recommended IDE Setup
+**Выполнил: Никитин Владимир, РК6-75Б**
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur) + [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin).
+## Задание
 
-## Type Support for `.vue` Imports in TS
+Разработать клиент-серверное приложение, реализующее функциональные требования (CRUD-операции), заданные в пределах
+указанной предметной области, с соблюдением следующих технических требований:
 
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin) to make the TypeScript language service aware of `.vue` types.
+- Клиентская сторона приложения должна быть разработана с использованием языка разметки HTML, таблиц стилей CSS и языка
+  программирования JavaScript.
+- Разрешено использовать любую библиотеку/фреймворк для построения пользовательского веб-интерфейса.
+- Серверная сторона приложения должна быть разработана с использованием языка программирования JavaScript и платформы
+  Node.js. Разрешено использовать любую библиотеку/фреймворк для создания сервера.
+- Взаимодействие между клиентом и сервером должно осуществляться через спроектированный REST-like API.
+- Данные на серверной стороне должны храниться в базе данных. Разрешено использовать любую БД и СУБД, к которой возможно
+  подключиться из JavaScript-кода.
+- Вместо JavaScript разрешено использовать TypeScript.
 
-If the standalone TypeScript plugin doesn't feel fast enough to you, Volar has also implemented a [Take Over Mode](https://github.com/johnsoncodehk/volar/discussions/471#discussioncomment-1361669) that is more performant. You can enable it by the following steps:
-
-1. Disable the built-in TypeScript Extension
-    1) Run `Extensions: Show Built-in Extensions` from VSCode's command palette
-    2) Find `TypeScript and JavaScript Language Features`, right click and select `Disable (Workspace)`
-2. Reload the VSCode window by running `Developer: Reload Window` from the command palette.
-
-## Customize configuration
-
-See [Vite Configuration Reference](https://vitejs.dev/config/).
-
-## Project Setup
-
-```sh
-npm install
-```
-
-### Compile and Hot-Reload for Development
-
-```sh
-npm run dev
-```
-
-### Type-Check, Compile and Minify for Production
-
-```sh
-npm run build
-```
-
-### Lint with [ESLint](https://eslint.org/)
-
-```sh
-npm run lint
-```
+Приложение представляет собой раздел личного кабинета сотрудника организации, проводящей конкурс школьных или
+студенческих работ. Раздел отвечает за распределение команд по наставникам. В разделе указывается список наставников с
+возможностью добавления наставника в список, удаления его из списка и редактирования информации о нем. Информация о
+наставнике: ФИО (строка), ID (строка, нередактируемый атрибут), специализация (выбор из списка). Перечень типов
+специализации (например, по школьным предметам) задается изначально. У каждого наставника есть список команд с
+проектами, в который можно добавлять команды и удалять их из списка, а также переводить команду с одного наставника на
+другого. Атрибуты команды с проектом: наименование проекта (строка), специализация проекта (выбор из списка), перечень
+членов команды (массив строк), ID(строка, нередактируемый атрибут). Один наставник может работать не более, чем с N
+командами. Если команда добавляется в список (любым способом) или ее параметры изменяются, необходимо проверить,
+соответствует ли специализация команды наставнику и не превышен ли лимит команд у наставника. Если одно из условий не
+выполнено, должно отобразиться уведомление-предупреждение о невозможности внесения этих изменений.
