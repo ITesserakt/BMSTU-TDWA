@@ -4,7 +4,7 @@ import { use_notification } from '../stores/notification_store'
 import type { Team } from '../models/team'
 import { reactive, ref } from 'vue'
 import { Mentor } from '../models/mentor'
-import { SpecializationValues } from '../models/specialization'
+import { type Specialization, SpecializationValues } from '../models/specialization'
 
 type State = 'button' | 'editing'
 type Event = 'add' | 'save' | 'cancel'
@@ -18,20 +18,22 @@ const props = defineProps({
 
 const emit = defineEmits<{ (e: 'saved', value: Team): void, (e: 'invalid'): void }>()
 const state = ref<State>('button')
-const object = reactive({
+let object = reactive({
     project: '',
-    spec: '',
-    members: ''
+    spec: undefined as Specialization | undefined,
+    members: [] as string[] | string
 })
 
-function validate(object: { project: string, spec: string, members: string }): [false, string] | true {
+function validate(): [false, string] | true {
     if (object.project.trim() === '')
         return [false, 'Имя проекта не должно быть пустым']
-    if (object.spec === '')
+    if (object.spec === undefined)
         return [false, 'Выберите специализацию']
     if (object.spec !== props.mentor.specialization)
         return [false, 'Специализация не совпадает со специализацией наставника']
-    if (object.members == '')
+    if (typeof object.members === 'string')
+        object.members = object.members.split(',')
+    if (object.members.length === 0 || (object.members.length === 1 && object.members[0] === ''))
         return [false, 'В команде отсутствуют участники']
     return true
 }
@@ -41,26 +43,23 @@ function send(event: Event) {
         case 'add':
             this.state = 'editing'
             break
-        case 'save': {
-            const validated = validate(this.object)
-            if (validated !== true) {
-                emit('invalid')
-                show(validated[1], true)
-            } else {
-                db.add_team(props.mentor.id,
-                    this.object.members.split('\n'),
-                    this.object.project,
-                    this.object.spec)
-                    .then(t => emit('saved', t))
-                    .catch(e => show(e, true))
-                    .then(_ => this.state = 'button')
-                this.object = {
-                    project: '',
-                    spec: '',
-                    members: ''
+        case 'save':
+            (async () => {
+                const validated = validate()
+                if (validated !== true) {
+                    emit('invalid')
+                    show(validated[1], true)
+                } else {
+                    const team = await db.add_team(props.mentor.id, object.members as string[], object.project, object.spec)
+                    object = {
+                        project: '',
+                        spec: undefined,
+                        members: []
+                    }
+                    emit('saved', team)
+                    state.value = 'button'
                 }
-            }
-        }
+            })()
             break
         case 'cancel':
             this.object = {

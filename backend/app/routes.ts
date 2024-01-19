@@ -82,8 +82,12 @@ export default function routes(app: Express) {
     app.patch('/api/mentor/:id', async (req, res) => {
         try {
             const mentor = await Mentor.findByPk(req.params.id)
-            await mentor?.update(req.body)
-            await mentor?.save()
+            if (mentor === null) return res.json(not_found_msg)
+            await mentor.update(req.body)
+            await mentor.save()
+            await Team.update({ specialization: mentor.specialization }, {
+                where: { MentorId: mentor.id }
+            })
             res.json(ok_msg)
         } catch (ex) {
             res.status(400).json({ message: ex })

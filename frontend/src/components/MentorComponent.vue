@@ -34,7 +34,7 @@ export default defineComponent({
                     this.state = 'editing'
                     break
                 case 'save':
-                    db.update_mentor(this.mentor!)
+                    db.update_mentor(this.mentor)
                         .then(_ => this.state = 'expanded')
                     break
                 case 'cancel':
@@ -98,7 +98,7 @@ export default defineComponent({
                     </div>
                     <div v-else>
                         <div class="select">
-                            <select>
+                            <select v-model="mentor.specialization">
                                 <option v-for="spec in SpecializationValues()" :key="spec">
                                     {{ spec }}
                                 </option>

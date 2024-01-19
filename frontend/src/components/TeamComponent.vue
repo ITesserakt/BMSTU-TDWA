@@ -3,6 +3,8 @@ import { defineComponent } from 'vue'
 import { use_database } from '../stores/database_store'
 import { use_notification } from '../stores/notification_store'
 import { Team } from '../models/team'
+import { SpecializationValues } from '../models/specialization'
+import { Mentor } from '../models/mentor'
 
 type State = 'loading' | 'viewing' | 'editing'
 type Event = 'edit' | 'save' | 'cancel' | 'load' | 'remove'
@@ -15,35 +17,47 @@ export default defineComponent({
         mentor_id: { type: Number, required: true },
         team_id: { type: Number, required: true }
     },
-    emits: ['saved', 'invalid', 'deleted'],
+    emits: ['saved', 'invalid', 'deleted', 'moved'],
     async mounted() {
         this.team = await db.get_team_by_id(this.mentor_id, this.team_id)
+        for (const id of db.mentors.value) {
+            this.names.push([id, (await db.get_mentor_by_id(id)).fullname])
+        }
         this.send('load')
     },
     data() {
         return {
             state: 'viewing' as State,
             team: undefined as Team | undefined,
-            move: undefined as number | undefined
+            target_mentor_id: this.mentor_id,
+            names: [] as [number, string][]
         }
     },
     methods: {
+        SpecializationValues,
         send(event: Event) {
             switch (event) {
                 case 'edit':
                     this.state = 'editing'
                     break
-                case 'save': {
-                    const validation = this.validate()
-                    if (validation !== true) {
-                        this.$emit('invalid')
-                        show(validation[1], true)
-                    } else {
-                        db.update_team(this.mentor_id, this.team_id, this.team.project, this.team.members.split(','))
-                        this.team.members = this.team.members.split(',')
-                    }
-                }
-                    this.state = 'viewing'
+                case 'save':
+                    (async () => {
+                        const target_mentor = await db.get_mentor_by_id(this.target_mentor_id)
+                        const validation: true | [false, string] = this.validate(target_mentor)
+                        if (validation === true) {
+                            if (this.target_mentor_id !== this.mentor_id) {
+                                await db.remove_team_by_id(this.mentor_id, this.team_id)
+                                await db.add_team(this.target_mentor_id, this.team.members, this.team.project, this.team.specialization)
+                                this.$emit('moved')
+                            } else {
+                                await db.update_team(this.mentor_id, this.team)
+                                this.$emit('saved')
+                            }
+                        } else {
+                            show(validation[1], true)
+                            this.$emit('invalid')
+                        }
+                    })()
                     break
                 case 'cancel':
                     db.get_team_by_id(this.mentor_id, this.team_id)
@@ -59,9 +73,17 @@ export default defineComponent({
                     break
             }
         },
-        validate(): [false, string] | true {
+        validate(target_mentor: Mentor): [false, string] | true {
             if (this.team.project.trim() === '')
                 return [false, 'Имя проекта не должно быть пустым']
+            if (this.team.members instanceof String) // textarea changes array to plain string
+                this.team.members = this.team.members.split(',')
+            if (this.team.members.length === 0)
+                return [false, 'Должен быть хотя бы один участник']
+            if (this.team.members.length === 1 && this.team.members[0] === '')
+                return [false, 'Должен быть хотя бы один участник']
+            if (this.team.specialization !== target_mentor.specialization)
+                return [false, 'Специализации команды и наставника не совпадают']
             return true
         }
     }
@@ -84,8 +106,16 @@ export default defineComponent({
                     <div class="column">
                         <p>Специализация:</p>
                     </div>
-                    <div class="column has-text-right">
+                    <div class="column has-text-right" v-if="state === 'viewing'">
                         <p>{{ team.specialization }}</p>
+                    </div>
+                    <div class="column has-text-light" v-else-if="state === 'editing'">
+                        <div class="select">
+                            <select v-model="team.specialization">
+                                <option disabled selected value="">Выбрать</option>
+                                <option v-for="spec in SpecializationValues()" :key="spec">{{ spec }}</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -107,8 +137,9 @@ export default defineComponent({
                     <div class="column">Переместить к:</div>
                     <div class="column">
                         <div class="select">
-                            <select v-model="move">
-                                <option selected :value="undefined" disabled>Выбрать</option>
+                            <select v-model="target_mentor_id">
+                                <option selected disabled>Выбрать</option>
+                                <option v-for="name in names" :key="name[0]" :value="name[0]">{{ name[1] }}</option>
                             </select>
                         </div>
                     </div>
@@ -132,5 +163,6 @@ export default defineComponent({
     min-width: 100%;
     width: 100%;
     resize: vertical;
+    height: auto;
 }
 </style>

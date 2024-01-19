@@ -9,9 +9,14 @@ const mentors_db: Ref<Set<number>> = ref(new Set())
 
 const { show } = use_notification()
 
-read<number[]>('/api/mentor/')
-    .then(it => mentors_db.value = new Set(it))
-    .catch(e => show(`Невозможно подключиться к серверу: ${e}`, true))
+async function reload_store() {
+    mentors_db.value.clear()
+    await read<number[]>('/api/mentor/')
+        .then(it => mentors_db.value = new Set(it))
+        .catch(e => show(`Невозможно подключиться к серверу: ${e}`, true))
+}
+
+reload_store().then()
 
 export function use_database() {
     return {
@@ -47,6 +52,7 @@ export function use_database() {
         },
         async get_team_by_id(mentor_id: number, team_id: number) {
             return await read<Team>(`/api/mentor/${mentor_id}/team/${team_id}`)
-        }
+        },
+        reload_store
     }
 }

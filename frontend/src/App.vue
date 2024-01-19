@@ -78,6 +78,7 @@ const db = use_database()
                                                 @saved="db.get_mentor_by_id(selected_mentor.id).then(m => selected_mentor = m)"
                                                 @deleted="db.get_mentor_by_id(selected_mentor.id)
                                                     .then(m => selected_mentor = m)"
+                                                @moved="db.reload_store().then(selected_mentor = undefined)"
                                 />
                             </div>
                         </div>
