@@ -2,8 +2,8 @@
 import { reactive, ref } from 'vue'
 import { use_database } from '../stores/database_store'
 import { use_notification } from '../stores/notification_store'
-import type { Mentor } from '../models/mentor'
-import { SpecializationValues } from '../models/specialization'
+import { Mentor } from '../models/mentor'
+import { type Specialization, SpecializationValues } from '../models/specialization'
 
 type State = 'button' | 'editing'
 type Event = 'add' | 'save' | 'cancel'
@@ -15,7 +15,7 @@ const emit = defineEmits<{ (e: 'saved', value: Mentor): void, (e: 'invalid'): vo
 const state = ref<State>('button')
 const object = reactive({
     fullname: '',
-    spec: ''
+    specialization: 'инфтех' as Specialization
 })
 
 function send(event: Event) {
@@ -24,19 +24,21 @@ function send(event: Event) {
             this.state = 'editing'
             break
         case 'save':
-            if (this.object.fullname.trim() === '') {
-                emit('invalid')
-                show('Имя наставника не должно быть пустым', true)
-            } else {
-                db.add_mentor(this.object.fullname, this.object.spec)
-                    .then(m => emit('saved', m))
-                    .catch(e => show(e, true))
-                this.object = {
-                    fullname: '',
-                    spec: ''
+            (async () => {
+                const validation = validate()
+                if (validation === true) {
+                    const team = await db.add_mentor(object.fullname, object.specialization)
+                    this.object = {
+                        fullname: '',
+                        spec: ''
+                    }
+                    emit('saved', team)
+                    this.state = 'button'
+                } else {
+                    emit('invalid')
+                    show(validation[1], true)
                 }
-                this.state = 'button'
-            }
+            })()
             break
         case 'cancel':
             this.object = {
@@ -46,6 +48,12 @@ function send(event: Event) {
             this.state = 'button'
             break
     }
+}
+
+function validate(): [false, string] | true {
+    if (object.fullname.trim() === '')
+        return [false, 'Имя наставника не должно быть пустым']
+    return true
 }
 </script>
 
@@ -78,8 +86,7 @@ function send(event: Event) {
                     </div>
                     <div class="column">
                         <div class="select">
-                            <select>
-                                <option selected value="" disabled>Выбрать</option>
+                            <select v-model="object.specialization">
                                 <option v-for="spec in SpecializationValues()" :key="spec">
                                     {{ spec }}
                                 </option>
@@ -95,7 +102,3 @@ function send(event: Event) {
         </div>
     </div>
 </template>
-
-<style scoped>
-
-</style>
