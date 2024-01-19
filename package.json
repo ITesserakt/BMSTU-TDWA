@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev-front": "vite frontend",
+    "prod-front": "vite build frontend",
     "dev-back": "npx nodemon -e ts --exec \"npx tsx --tsconfig backend/tsconfig.json backend/app/index.ts\""
   },
   "dependencies": {
