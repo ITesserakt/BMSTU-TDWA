@@ -53,7 +53,7 @@ const db = use_database()
                                 <mentor_component
                                     :mentor_id="mentor_id"
                                     @selected="(m) => selected_mentor = m"
-                                    @deleted="db.remove_mentor_by_id(mentor_id)"
+                                    @deleted="db.remove_mentor_by_id(mentor_id).then(selected_mentor = undefined)"
                                 />
                             </div>
                         </div>

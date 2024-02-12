@@ -65,7 +65,8 @@ export default function routes(app: Express) {
 
     app.delete('/api/mentor/:id/team/:team_id', async (req, res) => {
         await Team.destroy({
-            where: { id: req.params.team_id }
+            where: { id: req.params.team_id },
+            cascade: true
         })
         res.json(ok_msg)
     })
@@ -125,7 +126,8 @@ export default function routes(app: Express) {
         await Team.destroy({
             where: {
                 id: req.params.id
-            }
+            },
+            cascade: true
         })
         return res.json(ok_msg)
     })
